@@ -58,5 +58,12 @@ optional arguments:
                         The output formate (default: csv)
   --useContent          Try finding the cached file and calculate the MD5 hash
                         for it
+
+Example::
+python CryptonetURlCacheParser.py -d "C:\Users\Alice\AppData\LocalLow\Microsoft\CryptnetUrlCache\MetaData" -o "alice_cache.csv" --outputFormat csv --useContent
+
+./CryptonetURlCacheParser -d /home/user/CryptnetCache/Metadata -o output.csv --outputFormat csv --useContent
+
+CryptonetURlCacheParser.exe -d "C:\Users\Alice\AppData\LocalLow\Microsoft\CryptnetUrlCache\MetaData" -o output.csv --outputFormat csv --useContent
 ```
 
