@@ -1,5 +1,7 @@
 # CryptnetURLCacheParser
 
+# This is a Updated Version of mine MASUM BILLAH, we also add ELF file and EXE file (both Updated)
+
 CryptnetURLCacheParser is a tool to parse CryptAPI cache files located on the following paths:
 
 ```
@@ -58,23 +60,3 @@ optional arguments:
                         for it
 ```
 
-* **-d** or **--dirs** : a list of directories that contains `CryptnetUrlCache` metadata files. the default paths are :
-  * C:\Windows\System32\config\systemprofile\AppData\LocalLow\Microsoft\CryptnetUrlCache
-  * C:\Windows\SysWOW64\config\systemprofile\AppData\LocalLow\Microsoft\CryptnetUrlCache
-  * C:\Users\<USERNAME>\AppData\LocalLow\Microsoft\CryptnetUrlCache
-
-* **-o** or **--output** : the output file path. default to `stdout`.
-* **--outputFormat** : the results output format. you can choose from the following:
-  * csv (default)
-  * json
-  * jsonl
-* **--useContent** : try to find the actual file related to the metadata file and calculate it's MD5 hash. The following are the steps taken to accomplish this task:
-  * Save the metadata file name (ex. `00000000000000000000000000000000`)
-  * Go to parent directory.
-  * Go inside `Conent` directory.
-  * Check if the metadata file name saved earlier is present. (ex. `00000000000000000000000000000000`)
-  * If preset calculate file's MD5 hash, otherwise return `00000000000000000000000000000000`
-
-## File Structure & Artifact Specifics
-
-I wrote a blog post that describe the file structure for the metadata files. You can find it here https://u0041.co/blog/post/3. 
