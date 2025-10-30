@@ -34,7 +34,7 @@ git clone https://github.com/AbdulRhmanAlfaifi/CryptnetURLCacheParser
 
 ### Precompiled
 
-You can use the latest compiled windows executable from the release section.
+You can use the latest compiled windows executable and ELF from here
 
 ## How to use
 
