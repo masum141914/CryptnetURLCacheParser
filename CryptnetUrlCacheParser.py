@@ -22,7 +22,7 @@ from datetime import datetime, timedelta
 import hashlib
 
 
-__author__ = "AbdulRhman Alfaifi"
+__editor__ = "MASUM BILLAH"
 __version__ = "1.2"
 __maintainer__ = "AbdulRhman Alfaifi"
 __license__ = "GPL"
@@ -35,17 +35,6 @@ class CertutilCacheParser:
         if not os.path.isfile(self.filePath):
             raise FileNotFoundError(f"The cache file '{self.filePath}' not found.")
 
-    # Not used anymore. I was using this before I found etag and urlSize.
-    def ReadUTF16String(self, file):
-        string = b""
-        while True:
-            c = struct.unpack("s", file.read(1))[0]
-            c2 = struct.unpack("s", file.read(1))[0]
-            if c == b"\x00" and c2 == b"\x00":
-                break
-            string += c
-        return string.decode()
-
     # https://stackoverflow.com/questions/2150739/iso-time-iso-8601-in-python
     def FILETIMEToISO(self, ft):
         us = (ft - 116444736000000000) // 10
@@ -53,6 +42,8 @@ class CertutilCacheParser:
         return dtObj.isoformat()
 
     def MD5(self, fname):
+        if not os.path.exists(fname):
+            return "N/A"
         try:
             hash_md5 = hashlib.md5()
             with open(fname, "rb") as f:
@@ -60,53 +51,52 @@ class CertutilCacheParser:
                     hash_md5.update(chunk)
             return hash_md5.hexdigest().upper()
         except:
-            return "00000000000000000000000000000000"
+            return "ERROR"
 
     def Parse(self, useContent=True):
-        parsedData = {}
-        cacheFile = open(self.filePath, "rb")
-        header = struct.unpack("<12xIQ64xQ4xI8xI", cacheFile.read(116))
-        urlSize = header[0]
-        last_download_time = self.FILETIMEToISO(header[1])
-        last_modification_time_header = self.FILETIMEToISO(header[2])
-        etagsize = header[3]
-        fileSize = header[4]
-        # Read url string with the urlSize-1 (ignore null byte).
         try:
-            url = b"".join(
-                struct.unpack(f"{urlSize}c", cacheFile.read(urlSize))
-            ).decode("utf-16-le")[0:-1]
+            with open(self.filePath, "rb") as cacheFile:
+                data = cacheFile.read(116)
+                if len(data) != 116:
+                    return None
+                header = struct.unpack("<12xIQ64xQ4xI8xI", data)
+                urlSize = header[0]
+                last_download_time = self.FILETIMEToISO(header[1])
+                last_modification_time_header = self.FILETIMEToISO(header[2])
+                etagsize = header[3]
+                fileSize = header[4]
+                # url
+                url_bytes = cacheFile.read(urlSize)
+                if len(url_bytes) != urlSize:
+                    return None
+                try:
+                    url = url_bytes.decode("utf-16-le")[:-1]
+                except:
+                    return None
+                # etag
+                etag_bytes = cacheFile.read(etagsize)
+                if len(etag_bytes) != etagsize:
+                    return None
+                try:
+                    etag = etag_bytes.decode("utf-16-le").replace('"', "")[:-1]
+                except:
+                    etag = "Not Found"
+
+                parsedData = {
+                    "LastDownloadTime": last_download_time,
+                    "LastModificationTimeHeader": last_modification_time_header,
+                    "URL": url,
+                    "FileSize": fileSize,
+                    "ETag": etag,
+                    "FullPath": self.filePath,
+                }
+                if useContent:
+                    contentFilePath = os.path.normpath(os.path.join(os.path.dirname(self.filePath), "..", "Content", os.path.basename(self.filePath)))
+                    md5 = self.MD5(contentFilePath)
+                    parsedData["MD5"] = md5
+                return parsedData
         except:
             return None
-
-        # Read hash string with the etag-1 (ignore null byte) and remove double quotation.
-        try:
-            hash = (
-                b"".join(struct.unpack(f"{etagsize}c", cacheFile.read(etagsize)))
-                .decode("utf-16-le")
-                .replace('"', "")[0:-1]
-            )
-        except:
-            hash = "Not Found"
-
-        parsedData.update(
-            {
-                "LastDownloadTime": last_download_time,
-                "LastModificationTimeHeader": last_modification_time_header,
-                "URL": url,
-                "FileSize": fileSize,
-                "ETag": hash,
-                "FullPath": cacheFile.name,
-            }
-        )
-
-        # Check if the file exsistes in the Content folder. If it does then calculate the file MD5 hash.
-        if useContent:
-            contentFilePath = f"{os.path.dirname(cacheFile.name)}/../Content/{os.path.basename(cacheFile.name)}"
-            md5 = self.MD5(contentFilePath)
-            parsedData.update({"MD5": md5})
-
-        return parsedData
 
 
 if __name__ == "__main__":
@@ -224,3 +214,4 @@ if __name__ == "__main__":
         else:
             out = args.output
         out.write(json.dumps(results))
+                                         
